@@ -1,0 +1,29 @@
+name: Smoke Test DeepSeek API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/smoke-test-api.yml
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify Worker health
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 30 \
+            https://enheng-tweet-card-api.faithful-princess.workers.dev/health \
+            | jq --exit-status '.ok == true and .aiConfigured == true'
+
+      - name: Generate three test captions
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 60 \
+            -X POST \
+            -H 'Origin: https://frenx-lab.github.io' \
+            -H 'Content-Type: application/json' \
+            --data '{"text":"长期成长不是追逐每一个热点，而是找到值得持续积累的方向，并在波动中保持自己的判断。","style":"concise","accountName":"接口验证"}' \
+            https://enheng-tweet-card-api.faithful-princess.workers.dev/api/generate-douyin-copy \
+            | jq --exit-status '.candidates | type == "array" and length == 3'
