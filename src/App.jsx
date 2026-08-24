@@ -26,18 +26,18 @@ const aiApiBase = (import.meta.env.VITE_AI_API_BASE_URL || "").replace(/\/$/, ""
 const defaultAvatar = publicAsset("assets/enheng-avatar.jpg");
 const initialTweet = tweets[0];
 const backgrounds = [
-  { id: "aurora", name: "极光流动", tags: "AI 科技 极光 蓝紫 抽象", src: publicAsset("backgrounds/generated-aurora.svg") },
-  { id: "sunset", name: "日落山丘", tags: "日落 山丘 橙色 自然", src: publicAsset("backgrounds/generated-sunset.svg") },
-  { id: "ocean", name: "深海微光", tags: "海洋 蓝色 微光 安静", src: publicAsset("backgrounds/generated-ocean.svg") },
-  { id: "paper", name: "暖色纸张", tags: "纸张 米色 极简 认知", src: publicAsset("backgrounds/generated-paper.svg") },
-  { id: "grid", name: "未来网格", tags: "AI 科技 网格 黑色 未来", src: publicAsset("backgrounds/generated-grid.svg") },
-  { id: "forest", name: "雾中森林", tags: "森林 绿色 雾 自然", src: publicAsset("backgrounds/generated-forest.svg") },
-  { id: "dawn", name: "城市清晨", tags: "城市 清晨 粉色 天空", src: publicAsset("backgrounds/generated-dawn.svg") },
-  { id: "ink", name: "水墨山水", tags: "水墨 山水 黑白 中国风", src: publicAsset("backgrounds/generated-ink.svg") },
-  { id: "neon", name: "霓虹渐变", tags: "霓虹 紫色 蓝色 AI 抽象", src: publicAsset("backgrounds/generated-neon.svg") },
-  { id: "desert", name: "沙漠光影", tags: "沙漠 金色 光影 自然", src: publicAsset("backgrounds/generated-desert.svg") },
-  { id: "cloud", name: "云上蓝天", tags: "蓝天 云朵 清新 自由", src: publicAsset("backgrounds/generated-cloud.svg") },
-  { id: "matrix", name: "矩阵光线", tags: "矩阵 光线 绿色 黑色 科技", src: publicAsset("backgrounds/generated-matrix.svg") },
+  { id: "city-night", name: "城市夜色", tags: "城市 夜景 蓝色 建筑 倒影", src: publicAsset("backgrounds/photos/city-night.webp") },
+  { id: "fog-railway", name: "雾林铁轨", tags: "森林 雾 铁轨 秋天 氛围", src: publicAsset("backgrounds/photos/fog-railway.webp") },
+  { id: "misty-lake", name: "雾中湖泊", tags: "湖泊 森林 雾 绿色 安静", src: publicAsset("backgrounds/photos/misty-lake.webp") },
+  { id: "alpine-lake", name: "高山秘境", tags: "高山 湖泊 日出 倒影 自然", src: publicAsset("backgrounds/photos/alpine-lake.webp") },
+  { id: "starry-lake", name: "星河湖面", tags: "星空 银河 湖泊 夜晚 蓝色", src: publicAsset("backgrounds/photos/starry-lake.webp") },
+  { id: "golden-coast", name: "金色海岸", tags: "海边 日落 橙色 海浪 治愈", src: publicAsset("backgrounds/photos/golden-coast.webp") },
+  { id: "snow-mountain", name: "雪山蓝调", tags: "雪山 冬天 蓝色 极简 冰川", src: publicAsset("backgrounds/photos/snow-mountain.webp") },
+  { id: "green-architecture", name: "绿意建筑", tags: "建筑 绿色 现代 极简 城市", src: publicAsset("backgrounds/photos/green-architecture.webp") },
+  { id: "rainy-bokeh", name: "雨夜光斑", tags: "雨夜 城市 光斑 霓虹 氛围", src: publicAsset("backgrounds/photos/rainy-bokeh.webp") },
+  { id: "mountain-road", name: "山间公路", tags: "公路 山脉 旅行 加拿大 风景", src: publicAsset("backgrounds/photos/mountain-road.webp") },
+  { id: "japan-neon", name: "东京夜巷", tags: "日本 夜晚 街道 霓虹 城市", src: publicAsset("backgrounds/photos/japan-neon.webp") },
+  { id: "sunset-pier", name: "落日码头", tags: "海边 日落 码头 橙色 剪影", src: publicAsset("backgrounds/photos/sunset-pier.webp") },
 ];
 
 function formatDate(value) {
@@ -547,7 +547,7 @@ export function App() {
         {outputMode === "poster" && <section className="panel-section background-section">
           <div className="section-heading compact"><span className="step-number">{backgroundStep}</span><div><h2>选择背景</h2><p>内置图库、本地上传、网络图片都能用</p></div></div>
           <label className="search-box background-search"><MagnifyingGlass /><input value={backgroundQuery} onChange={(event) => setBackgroundQuery(event.target.value)} placeholder="搜：香港、城市、夜景、山海" /></label>
-          <div className="background-grid">{backgroundResults.map((item) => <button key={item.id} className={background === item.src ? "active" : ""} onClick={() => setBackground(item.src)}><img src={item.src} alt={item.name} /><span>{item.name}</span></button>)}</div>
+          <div className="background-grid">{backgroundResults.map((item) => <button key={item.id} className={background === item.src ? "active" : ""} onClick={() => setBackground(item.src)}><img src={item.src} alt={item.name} loading="lazy" /><span>{item.name}</span></button>)}</div>
           <div className="background-actions"><label className="upload-button"><UploadSimple /> 上传自己的背景<input type="file" accept="image/*" onChange={loadUpload} /></label><div className="url-row"><input value={backgroundUrl} onChange={(event) => setBackgroundUrl(event.target.value)} placeholder="或粘贴网上的图片地址" /><button onClick={applyBackgroundUrl}>使用</button></div></div>
           <label className="range-label"><span>背景压暗 <b>{overlay}%</b></span><input type="range" min="0" max="55" value={overlay} onChange={(event) => setOverlay(Number(event.target.value))} /></label>
           <div className="placement-controls">
