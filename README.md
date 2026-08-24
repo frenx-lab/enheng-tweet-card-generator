@@ -7,3 +7,7 @@
 ## GitHub Pages 与 DeepSeek
 
 仓库已包含 GitHub Pages 自动部署流程。Pages 只负责公开前端，不能安全保存 DeepSeek API Key。AI 文案通过独立的服务端接口调用：前端只配置公开的 `VITE_AI_API_BASE_URL`，服务端把 `DEEPSEEK_API_KEY` 保存为 Secret，并通过 `ALLOWED_ORIGIN` 限制允许调用的 Pages 域名。不要把真实密钥写入源码、`.env.example` 或任何以 `VITE_` 开头的变量。
+
+线上后端使用 Cloudflare Worker，配置文件为 `wrangler.jsonc`。部署后通过 `wrangler secret put DEEPSEEK_API_KEY` 交互式保存密钥；密钥不会写入仓库。`ALLOWED_ORIGIN` 固定为 `https://frenx-lab.github.io`，接口还会拒绝不在允许列表中的浏览器来源。`GET /health` 只返回服务状态和密钥是否已配置，不返回密钥内容。
+
+当前生产接口为 `https://enheng-tweet-card-api.faithful-princess.workers.dev`，GitHub Pages 的构建流程已直接使用该公开地址。生产密钥仍需在 Cloudflare Worker 的 Variables and Secrets 中以 Secret 类型添加，变量名必须为 `DEEPSEEK_API_KEY`。

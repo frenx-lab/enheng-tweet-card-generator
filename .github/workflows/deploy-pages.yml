@@ -26,7 +26,7 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          VITE_AI_API_BASE_URL: ${{ vars.VITE_AI_API_BASE_URL }}
+          VITE_AI_API_BASE_URL: https://enheng-tweet-card-api.faithful-princess.workers.dev
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

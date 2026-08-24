@@ -110,6 +110,27 @@ test("allows the configured GitHub Pages origin for caption requests", async () 
   assert.equal(response.headers.get("access-control-allow-origin"), "https://frenx-lab.github.io");
 });
 
+test("rejects caption requests from origins outside the allowlist", async () => {
+  const response = await worker.fetch(new Request("https://api.example.test/api/generate-douyin-copy", {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: "https://attacker.example" },
+    body: JSON.stringify({ text: "这是一段用于生成抖音发布配文的卡片原文。", style: "concise" }),
+  }), { ALLOWED_ORIGIN: "https://frenx-lab.github.io" });
+
+  assert.equal(response.status, 403);
+  assert.equal(response.headers.get("access-control-allow-origin"), null);
+});
+
+test("serves a standalone health check without an assets binding", async () => {
+  const response = await worker.fetch(new Request("https://api.example.test/health"), {
+    DEEPSEEK_API_KEY: "test-secret",
+    ALLOWED_ORIGIN: "https://frenx-lab.github.io",
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { ok: true, aiConfigured: true });
+});
+
 test("returns three structured DeepSeek caption candidates", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (_request, options) => {

@@ -1,12 +1,18 @@
 export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url);
+    if (requestUrl.pathname === "/health") {
+      return jsonResponse({ ok: true, aiConfigured: Boolean(env.DEEPSEEK_API_KEY) }, 200, request, env);
+    }
     if (requestUrl.pathname === "/api/generate-douyin-copy") {
-      if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(request, env) });
+      if (request.method === "OPTIONS") return preflightResponse(request, env);
+      if (!isAllowedOrigin(request, env)) return jsonResponse({ error: "Origin not allowed" }, 403, request, env);
       return generateDouyinCopy(request, env);
     }
     if (requestUrl.pathname === "/api/image-proxy") {
+      if (request.method === "OPTIONS") return preflightResponse(request, env);
       if (request.method !== "GET") return new Response("Method not allowed", { status: 405 });
+      if (!isAllowedOrigin(request, env)) return jsonResponse({ error: "Origin not allowed" }, 403, request, env);
       const source = requestUrl.searchParams.get("url");
       let imageUrl;
       try {
@@ -33,13 +39,15 @@ export default {
           headers: {
             "Content-Type": contentType,
             "Cache-Control": "public, max-age=3600",
-            "Access-Control-Allow-Origin": "*",
+            ...corsHeaders(request, env),
           },
         });
       } catch {
         return new Response("Unable to load remote image", { status: 502 });
       }
     }
+
+    if (!env.ASSETS) return new Response("Not Found", { status: 404, headers: securityHeaders() });
 
     const response = await env.ASSETS.fetch(request);
     const acceptsHtml = request.headers.get("accept")?.includes("text/html");
@@ -63,10 +71,31 @@ const copyStylePrompts = {
 
 function corsHeaders(request, env) {
   const origin = request.headers.get("Origin") || "";
-  const allowed = String(env.ALLOWED_ORIGIN || "").split(",").map((item) => item.trim()).filter(Boolean);
-  const headers = { "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Allow-Methods": "POST, OPTIONS", "Vary": "Origin" };
+  const allowed = allowedOrigins(env);
+  const headers = { ...securityHeaders(), "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Vary": "Origin" };
   if (origin && allowed.includes(origin)) headers["Access-Control-Allow-Origin"] = origin;
   return headers;
+}
+
+function allowedOrigins(env) {
+  return String(env.ALLOWED_ORIGIN || "").split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function isAllowedOrigin(request, env) {
+  const allowed = allowedOrigins(env);
+  if (allowed.length === 0) return true;
+  return allowed.includes(request.headers.get("Origin") || "");
+}
+
+function preflightResponse(request, env) {
+  return new Response(null, { status: isAllowedOrigin(request, env) ? 204 : 403, headers: corsHeaders(request, env) });
+}
+
+function securityHeaders() {
+  return {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+  };
 }
 
 function jsonResponse(value, status = 200, request, env) {
