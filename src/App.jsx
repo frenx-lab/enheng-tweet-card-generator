@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import {
-  ArrowsClockwise, BookmarkSimple, ChartBar, Check, ChatCircle, CopySimple,
-  DownloadSimple, DotsThree, Heart, ImageSquare, LinkSimple, MagnifyingGlass,
-  Repeat, SealCheck, ShieldCheck, Shuffle, Sparkle, UploadSimple, WarningCircle,
+  ArrowsClockwise, BookmarkSimple, Check, CopySimple, DownloadSimple, DotsThree,
+  ImageSquare, LinkSimple, MagnifyingGlass, SealCheck, ShieldCheck, Shuffle,
+  Sparkle, UploadSimple, WarningCircle,
 } from "@phosphor-icons/react";
 import tweets from "./tweets.json";
 import baseContentSources from "./content-sources.json";
@@ -23,7 +23,7 @@ const contentSources = interleaveContentSources(feishuContentSources, baseConten
 
 const publicAsset = (path) => `${import.meta.env.BASE_URL || "/"}${path.replace(/^\/+/, "")}`;
 const aiApiBase = (import.meta.env.VITE_AI_API_BASE_URL || "").replace(/\/$/, "");
-const defaultAvatar = publicAsset("assets/enheng-avatar.jpg");
+const defaultAvatar = publicAsset("assets/enheng-brand.jpg");
 const initialTweet = tweets[0];
 const backgrounds = [
   { id: "city-night", name: "城市夜色", tags: "城市 夜景 蓝色 建筑 倒影", src: publicAsset("backgrounds/photos/city-night.webp") },
@@ -40,9 +40,9 @@ const backgrounds = [
   { id: "sunset-pier", name: "落日码头", tags: "海边 日落 码头 橙色 剪影", src: publicAsset("backgrounds/photos/sunset-pier.webp") },
 ];
 
-function formatDate(value) {
+function formatNativeDate(value) {
   const date = new Date(`${value}T00:00:00+08:00`);
-  return `${date.getMonth() + 1}月${date.getDate()}日`;
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
 }
 function formatMetric(value) {
   if (value === null || value === undefined) return "—";
@@ -55,8 +55,8 @@ function formatMetric(value) {
 function getAdaptiveFontSize(text, preferred, poster = false) {
   const length = text.replace(/\s+/g, "").length;
   const limit = poster
-    ? length > 900 ? 11 : length > 700 ? 12 : length > 520 ? 13 : length > 360 ? 15 : length > 220 ? 17 : preferred
-    : length > 1000 ? 13 : length > 720 ? 14 : length > 480 ? 15 : length > 300 ? 16 : length > 180 ? 17 : preferred;
+    ? length > 900 ? 12 : length > 700 ? 13 : length > 520 ? 14 : length > 360 ? 16 : length > 260 ? 18 : length > 180 ? 20 : preferred
+    : length > 1000 ? 15 : length > 720 ? 17 : length > 520 ? 18 : length > 360 ? 20 : length > 240 ? 21 : preferred;
   return Math.min(preferred, limit);
 }
 function cleanSentence(value) {
@@ -240,18 +240,21 @@ async function createStableExportClone(node) {
 
 function TweetCard({ cardRef, text, fontSize, metrics, cardTheme, orientation = "portrait", poster = false, profile }) {
   return <article className={`tweet-card theme-${cardTheme} card-${orientation} ${poster ? "poster-tweet-card" : ""}`} ref={cardRef} aria-label="推文图片预览">
+    <div className="tweet-detail-nav" aria-hidden="true">
+      <span className="tweet-back">←</span>
+      <strong>帖子</strong>
+      <DotsThree weight="bold" />
+    </div>
     <header className="tweet-header">
       <img className="tweet-avatar" src={profile.avatar} alt={`${profile.name}头像`} />
-      <div className="tweet-identity"><div className="tweet-name-line"><strong>{profile.name}</strong><SealCheck weight="fill" className="verified-icon" /><span>{profile.handle}</span><span>·</span><span>{formatDate(profile.date)}</span></div></div>
-      <div className="tweet-actions-top" aria-hidden="true"><DotsThree size={25} weight="bold" /></div>
+      <div className="tweet-identity">
+        <div className="tweet-name-line"><strong>{profile.name}</strong><SealCheck weight="fill" className="verified-icon" /></div>
+        <span className="tweet-handle">{profile.handle}</span>
+      </div>
     </header>
     <div className="tweet-body" style={{ fontSize: `${fontSize}px` }}>{text}</div>
-    <footer className="tweet-metrics">
-      <span><ChatCircle /><em>{formatMetric(metrics.replies)}</em></span>
-      <span><Repeat /><em>{formatMetric(metrics.reposts)}</em></span>
-      <span className="liked"><Heart weight="fill" /><em>{formatMetric(metrics.likes)}</em></span>
-      <span><ChartBar /><em>{formatMetric(metrics.views)}</em></span>
-      <span><BookmarkSimple /><em>{formatMetric(metrics.bookmarks)}</em></span>
+    <footer className="tweet-native-meta">
+      <span>16:27</span><i>·</i><span>{formatNativeDate(profile.date)}</span><i>·</i><strong>{formatMetric(metrics.views)}</strong><span>次查看</span>
     </footer>
   </article>;
 }
@@ -269,7 +272,7 @@ export function App() {
   const [sourceCategory, setSourceCategory] = useState("全部");
   const [selectedSourceId, setSelectedSourceId] = useState(contentSources[0].id);
   const [sourceDraft, setSourceDraft] = useState(() => createSourceDraft(contentSources[0]));
-  const [fontSize, setFontSize] = useState(18);
+  const [fontSize, setFontSize] = useState(22);
   const [cardTheme, setCardTheme] = useState("light");
   const [background, setBackground] = useState(backgrounds[0].src);
   const [backgroundQuery, setBackgroundQuery] = useState("");
@@ -524,7 +527,7 @@ export function App() {
   const finishStep = hasEditor ? (outputMode === "poster" ? "06" : "05") : (outputMode === "poster" ? "05" : "04");
 
   return <main className="app-shell">
-    <header className="topbar"><div className="brand-mark">EH</div><div><p className="eyebrow">ENHENG CONTENT LAB</p><h1>嗯哼推文卡片生成器</h1></div><div className="privacy-badge"><ShieldCheck weight="fill" /> {tweets.length} 条公开内容 · 本地生成</div></header>
+    <header className="topbar"><img className="brand-mark" src={defaultAvatar} alt="嗯哼品牌 Logo" /><div><p className="eyebrow">ENHENG RED SAND STUDIO</p><h1>嗯哼推文卡片生成器</h1></div><div className="privacy-badge"><ShieldCheck weight="fill" /> {tweets.length} 条公开内容 · 本地生成</div></header>
     <div className="app-grid">
       <aside className="control-panel">
         <section className="panel-section mode-section"><div className="section-heading"><span className="step-number">01</span><div><h2>选择内容方式</h2><p>先看公开内容快照，也可以选中后自由改写</p></div></div><div className="segmented-control"><button className={mode === "history" ? "active" : ""} onClick={() => switchMode("history")}>公开内容快照</button><button className={mode === "draft" ? "active" : ""} onClick={() => switchMode("draft")}>自由改写</button></div></section>
@@ -543,7 +546,7 @@ export function App() {
         </section>}
         {mode === "sources" && <section className="panel-section editor-section"><div className="section-heading compact"><span className="step-number">03</span><div><h2>调整生成内容</h2><p>保留事实，改成你自己真实说话的方式</p></div></div><textarea value={sourceDraft} onChange={(event) => setSourceDraft(event.target.value)} rows={10} /><div className="editor-actions"><span>{sourceDraft.length} 字</span><button className="secondary-button" onClick={() => setSourceDraft(createSourceDraft(selectedSource))}><Sparkle weight="fill" /> 重新生成</button></div></section>}
         {mode === "draft" && <section className="panel-section editor-section"><div className="section-heading compact"><span className="step-number">03</span><div><h2>选择改写感觉</h2><p>不是换一句话，而是整篇换结构</p></div></div><div className="rewrite-style-pills">{rewriteStyles.map((style) => <button key={style.id} className={draftStyle === style.id ? "active" : ""} onClick={() => chooseDraftStyle(style.id)}>{style.label}</button>)}</div><textarea value={draft} onChange={(event) => setDraft(event.target.value)} rows={10} /><div className="editor-actions"><span>{draft.length} 字</span><button className="secondary-button" onClick={() => rewriteDraft(selected, draftStyle, draftVariant + 1)}><Shuffle weight="fill" /> 换一种写法</button></div><p className="rewrite-note">内容只营造“尽快真正用上AI”的认知，不写收益承诺、诱导购买或无法核实的个人经历。</p></section>}
-        <section className="panel-section output-section"><div className="section-heading compact"><span className="step-number">{outputStep}</span><div><h2>选择发布样式</h2><p>背景始终为抖音竖图，只调整推文卡片</p></div></div><div className="output-picker"><button className={outputMode === "poster" ? "active" : ""} onClick={() => setOutputMode("poster")}><ImageSquare weight="fill" /><strong>背景图成品</strong><span>固定竖版 3:4 背景</span></button><button className={outputMode === "card" ? "active" : ""} onClick={() => setOutputMode("card")}><BookmarkSimple weight="fill" /><strong>纯推文卡片</strong><span>没有额外背景</span></button></div><div className="orientation-control"><span>推文卡片版式</span><div className="orientation-picker" role="group" aria-label="选择推文卡片版式"><button type="button" className={orientation === "portrait" ? "active" : ""} onClick={() => setOrientation("portrait")}><i className="orientation-icon portrait" />竖版卡片</button><button type="button" className={orientation === "landscape" ? "active" : ""} onClick={() => setOrientation("landscape")}><i className="orientation-icon landscape" />横版卡片</button></div><small>系统会根据内容长度自动调整字号和卡片高度，背景画布不会改变。</small></div></section>
+        <section className="panel-section output-section"><div className="section-heading compact"><span className="step-number">{outputStep}</span><div><h2>选择发布样式</h2><p>卡片采用原生帖子详情页结构，正文高度自然增长</p></div></div><div className="output-picker"><button className={outputMode === "poster" ? "active" : ""} onClick={() => setOutputMode("poster")}><ImageSquare weight="fill" /><strong>背景图成品</strong><span>固定竖版 3:4 背景</span></button><button className={outputMode === "card" ? "active" : ""} onClick={() => setOutputMode("card")}><BookmarkSimple weight="fill" /><strong>原生帖子截图</strong><span>尺寸随正文自然增高</span></button></div><div className="orientation-control"><span>推文卡片版式</span><div className="orientation-picker" role="group" aria-label="选择推文卡片版式"><button type="button" className={orientation === "portrait" ? "active" : ""} onClick={() => setOrientation("portrait")}><i className="orientation-icon portrait" />原生竖版</button><button type="button" className={orientation === "landscape" ? "active" : ""} onClick={() => setOrientation("landscape")}><i className="orientation-icon landscape" />宽版适配</button></div><small>原生竖版最接近手机端 X 帖子截图，长文不会强制裁切。</small></div></section>
         {outputMode === "poster" && <section className="panel-section background-section">
           <div className="section-heading compact"><span className="step-number">{backgroundStep}</span><div><h2>选择背景</h2><p>内置图库、本地上传、网络图片都能用</p></div></div>
           <label className="search-box background-search"><MagnifyingGlass /><input value={backgroundQuery} onChange={(event) => setBackgroundQuery(event.target.value)} placeholder="搜：香港、城市、夜景、山海" /></label>
@@ -555,7 +558,7 @@ export function App() {
             <div className="drag-help"><span>在右侧直接拖动卡片调整位置</span><button onClick={resetCardPlacement}>居中重置</button></div>
           </div>
         </section>}
-        <section className="panel-section visual-section"><div className="section-heading compact"><span className="step-number">{finishStep}</span><div><h2>检查并下载</h2><p>右侧看到的就是最终图片</p></div></div><div className="profile-editor"><div className="profile-avatar-editor"><img src={profileAvatar} alt="当前头像" /><label><UploadSimple /> 自定义头像<input type="file" accept="image/*" onChange={loadProfileAvatar} /></label></div><div className="profile-fields"><label><span>显示名称</span><input value={profileName} maxLength={30} onChange={(event) => setProfileName(event.target.value)} /></label><label><span>用户名</span><input value={profileHandle} maxLength={32} onChange={(event) => setProfileHandle(event.target.value)} placeholder="@username" /></label><label><span>发布日期</span><input type="date" value={publishDate} onChange={(event) => setPublishDate(event.target.value)} /></label></div></div><div className="card-theme-control"><span>卡片背景</span><div className="card-theme-picker" role="group" aria-label="选择卡片背景"><button type="button" className={cardTheme === "light" ? "active" : ""} onClick={() => setCardTheme("light")}><i className="theme-swatch light" />白色</button><button type="button" className={cardTheme === "dark" ? "active" : ""} onClick={() => setCardTheme("dark")}><i className="theme-swatch dark" />黑色</button></div></div><label className="range-label"><span>正文字号 <b>{fontSize}px</b>{adaptiveCardFontSize < fontSize && <em>长文自动适配为 {adaptiveCardFontSize}px</em>}</span><input type="range" min="13" max="22" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label><button className="direct-export-button" onClick={exportDirectCard} disabled={exporting}><BookmarkSimple weight="fill" /><span><strong>{isMobile ? "保存纯推文卡片到相册" : "直接导出纯推文卡片"}</strong><small>没有海报背景，尺寸随正文自动增高</small></span></button>{outputMode === "poster" && activeText.length > 700 && <div className="length-warning"><WarningCircle weight="fill" /><span>这条内容很长，系统已经自动缩小卡片。纯卡片导出不会截断，抖音竖图建议适当精简。</span></div>}</section>
+        <section className="panel-section visual-section"><div className="section-heading compact"><span className="step-number">{finishStep}</span><div><h2>检查并下载</h2><p>右侧看到的就是最终图片</p></div></div><div className="profile-editor"><div className="profile-avatar-editor"><img src={profileAvatar} alt="当前头像" /><label><UploadSimple /> 自定义头像<input type="file" accept="image/*" onChange={loadProfileAvatar} /></label></div><div className="profile-fields"><label><span>显示名称</span><input value={profileName} maxLength={30} onChange={(event) => setProfileName(event.target.value)} /></label><label><span>用户名</span><input value={profileHandle} maxLength={32} onChange={(event) => setProfileHandle(event.target.value)} placeholder="@username" /></label><label><span>发布日期</span><input type="date" value={publishDate} onChange={(event) => setPublishDate(event.target.value)} /></label></div></div><div className="card-theme-control"><span>卡片背景</span><div className="card-theme-picker" role="group" aria-label="选择卡片背景"><button type="button" className={cardTheme === "light" ? "active" : ""} onClick={() => setCardTheme("light")}><i className="theme-swatch light" />白色</button><button type="button" className={cardTheme === "dark" ? "active" : ""} onClick={() => setCardTheme("dark")}><i className="theme-swatch dark" />黑色</button></div></div><label className="range-label"><span>正文字号 <b>{fontSize}px</b>{adaptiveCardFontSize < fontSize && <em>长文自动适配为 {adaptiveCardFontSize}px</em>}</span><input type="range" min="16" max="28" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label><button className="direct-export-button" onClick={exportDirectCard} disabled={exporting}><BookmarkSimple weight="fill" /><span><strong>{isMobile ? "保存原生帖子截图到相册" : "直接导出原生帖子截图"}</strong><small>保持手机帖子详情页结构，尺寸随正文自然增高</small></span></button>{outputMode === "poster" && activeText.length > 700 && <div className="length-warning"><WarningCircle weight="fill" /><span>这条内容很长，系统已经自动缩小卡片。纯卡片导出不会截断，抖音竖图建议适当精简。</span></div>}</section>
         <section className="panel-section publish-copy-section">
           <div className="section-heading compact"><span className="step-number">{String(Number(finishStep) + 1).padStart(2, "0")}</span><div><h2>生成抖音发布文案</h2><p>卡片原文不变，只生成发布时填写的配文</p></div></div>
           <div className="publish-style-picker" role="group" aria-label="选择抖音文案风格">{publishCopyStyles.map((style) => <button key={style.id} className={publishCopyStyle === style.id ? "active" : ""} onClick={() => { setPublishCopyStyle(style.id); setPublishCopies([]); setPublishCopySource(""); setPublishCopyError(""); }}><strong>{style.label}</strong><span>{style.hint}</span></button>)}</div>

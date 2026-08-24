@@ -1,15 +1,17 @@
 :root {
   font-family: Inter, "SF Pro Display", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-  color: #151515;
-  background: #efece5;
+  color: #2b1812;
+  background: #f3e4ce;
   font-synthesis: none;
-  --ink: #151515;
-  --paper: #f7f4ee;
-  --line: #d8d3c8;
-  --muted: #746f65;
-  --orange: #ff5a1f;
-  --orange-soft: #fff0e8;
-  --green: #15835e;
+  --ink: #2b1812;
+  --paper: #fff8ed;
+  --line: #dfbf8e;
+  --muted: #7d604c;
+  --orange: #c92833;
+  --orange-soft: #fde7d8;
+  --green: #178473;
+  --gold: #e4a33b;
+  --red: #b71f2c;
 }
 
 * {
@@ -22,10 +24,11 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   background:
-    linear-gradient(rgba(21, 21, 21, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(21, 21, 21, 0.035) 1px, transparent 1px),
-    #efece5;
-  background-size: 28px 28px;
+    radial-gradient(circle at 8% 12%, rgba(201, 40, 51, 0.12), transparent 26%),
+    radial-gradient(circle at 92% 88%, rgba(228, 163, 59, 0.19), transparent 30%),
+    linear-gradient(135deg, rgba(183, 31, 44, 0.045) 25%, transparent 25%) 0 0 / 36px 36px,
+    linear-gradient(315deg, rgba(228, 163, 59, 0.07) 25%, transparent 25%) 0 0 / 36px 36px,
+    #f3e4ce;
 }
 
 button,
@@ -57,29 +60,43 @@ a:focus-visible {
   min-height: 76px;
   margin: 0 auto 16px;
   padding: 0 22px;
-  border: 1px solid var(--ink);
-  background: rgba(247, 244, 238, 0.92);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #77141e;
+  border-radius: 18px;
+  color: #fff8ed;
+  background:
+    radial-gradient(circle at 82% 20%, rgba(255, 204, 112, 0.22), transparent 25%),
+    linear-gradient(135deg, #a91625, #c72b35 58%, #971521);
   display: flex;
   align-items: center;
   gap: 14px;
-  box-shadow: 4px 4px 0 var(--ink);
+  box-shadow: 0 14px 34px rgba(89, 19, 19, 0.2);
+}
+
+.topbar::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 32%;
+  pointer-events: none;
+  background: repeating-linear-gradient(135deg, transparent 0 18px, rgba(255, 217, 145, 0.09) 18px 20px);
 }
 
 .brand-mark {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  background: var(--ink);
-  color: white;
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: -0.05em;
+  position: relative;
+  z-index: 1;
+  width: 52px;
+  height: 52px;
+  border: 2px solid #f2bd5b;
+  border-radius: 15px;
+  object-fit: cover;
+  box-shadow: 0 7px 18px rgba(51, 7, 11, 0.32);
 }
 
 .eyebrow {
   margin: 0 0 2px;
-  color: var(--orange);
+  color: #f2bd5b;
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.2em;
@@ -90,6 +107,12 @@ a:focus-visible {
   font-size: 22px;
   line-height: 1;
   letter-spacing: -0.04em;
+  text-shadow: 0 2px 12px rgba(72, 8, 12, 0.28);
+}
+
+.topbar > div:not(.privacy-badge) {
+  position: relative;
+  z-index: 1;
 }
 
 .privacy-badge {
@@ -98,9 +121,12 @@ a:focus-visible {
   align-items: center;
   gap: 7px;
   padding: 8px 11px;
-  border: 1px solid #a8c9bb;
-  color: #11694c;
-  background: #e7f5ee;
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 220, 157, 0.65);
+  border-radius: 999px;
+  color: #5d251d;
+  background: #f3c974;
   font-size: 12px;
   font-weight: 750;
 }
@@ -120,20 +146,27 @@ a:focus-visible {
 
 .control-panel,
 .preview-panel {
-  border: 1px solid var(--ink);
+  border: 1px solid rgba(105, 56, 35, 0.24);
+  border-radius: 18px;
   background: var(--paper);
   min-width: 0;
+  box-shadow: 0 16px 45px rgba(91, 50, 27, 0.1);
 }
 
 .control-panel {
   max-height: calc(100vh - 114px);
   overflow-y: auto;
   scrollbar-width: thin;
+  border-top: 5px solid var(--red);
 }
 
 .panel-section {
   padding: 18px;
   border-bottom: 1px solid var(--line);
+}
+
+.panel-section:nth-child(odd) {
+  background: rgba(255, 248, 237, 0.76);
 }
 
 .panel-section:last-child {
@@ -153,8 +186,13 @@ a:focus-visible {
 
 .step-number {
   flex: 0 0 auto;
-  padding-top: 3px;
-  color: var(--orange);
+  min-width: 29px;
+  padding: 5px 6px;
+  border-radius: 999px;
+  text-align: center;
+  color: #fff7e8;
+  background: var(--red);
+  box-shadow: 0 3px 8px rgba(152, 21, 31, 0.18);
   font-family: ui-monospace, "SFMono-Regular", monospace;
   font-size: 11px;
   font-weight: 900;
@@ -262,7 +300,7 @@ a:focus-visible {
 }
 
 .segmented-control button.active {
-  background: var(--ink);
+  background: var(--red);
   color: #fff;
 }
 
@@ -866,6 +904,7 @@ a:focus-visible {
   display: grid;
   grid-template-rows: 52px 1fr auto;
   overflow: hidden;
+  border-top: 5px solid var(--gold);
 }
 
 .preview-toolbar,
@@ -879,7 +918,9 @@ a:focus-visible {
 }
 
 .preview-toolbar {
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid #6d291f;
+  color: #fff6e7;
+  background: linear-gradient(90deg, #321814, #5b211c);
 }
 
 .preview-toolbar > div {
@@ -893,8 +934,8 @@ a:focus-visible {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 0 4px rgba(21, 131, 94, 0.12);
+  background: #f1b84f;
+  box-shadow: 0 0 0 4px rgba(241, 184, 79, 0.16);
 }
 
 .status-dot.draft {
@@ -906,7 +947,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   gap: 5px;
-  color: var(--ink);
+  color: #ffecc7;
   font-size: 11px;
   font-weight: 750;
   text-decoration: none;
@@ -924,7 +965,7 @@ a:focus-visible {
   border: 0;
   background: none;
   cursor: pointer;
-  color: var(--ink);
+  color: #ffecc7;
   font-size: 11px;
   font-weight: 750;
 }
@@ -986,22 +1027,22 @@ a:focus-visible {
 .poster-card-wrap:active { cursor: grabbing; }
 .poster-tweet-card {
   width: 100%;
-  border-radius: 4px;
+  border-radius: 12px;
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.48);
 }
 .poster-tweet-card .tweet-body { min-height: 0; }
 .tweet-card {
   position: relative;
   width: 620px;
-  min-height: 330px;
-  padding: 18px 20px 14px;
+  min-height: 0;
+  padding: 0 24px 28px;
   overflow: visible;
   color: #0f1419;
   background: #fff;
-  font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: Arial, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.42);
 }
-.tweet-card.card-portrait:not(.poster-tweet-card) { width: 520px; }
+.tweet-card.card-portrait:not(.poster-tweet-card) { width: 600px; }
 .tweet-card.card-landscape:not(.poster-tweet-card) { width: 760px; }
 
 .tweet-card.theme-dark {
@@ -1009,15 +1050,45 @@ a:focus-visible {
   background: #000;
 }
 
+.tweet-detail-nav {
+  min-height: 72px;
+  margin: 0 -6px;
+  display: grid;
+  grid-template-columns: 54px 1fr 54px;
+  align-items: center;
+  color: currentColor;
+}
+
+.tweet-detail-nav strong {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.tweet-detail-nav svg {
+  justify-self: end;
+  width: 27px;
+  height: 27px;
+}
+
+.tweet-back {
+  font-family: Arial, sans-serif;
+  font-size: 39px;
+  font-weight: 300;
+  line-height: 1;
+  transform: translateY(-2px);
+}
+
 .tweet-header {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 0 26px;
 }
 
 .tweet-avatar {
-  width: 44px;
-  height: 44px;
+  width: 70px;
+  height: 70px;
   flex: 0 0 auto;
   border-radius: 50%;
   object-fit: cover;
@@ -1026,15 +1097,15 @@ a:focus-visible {
 
 .tweet-identity {
   min-width: 0;
-  padding-top: 2px;
+  display: grid;
+  gap: 2px;
 }
 
 .tweet-name-line {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  font-size: 15px;
+  gap: 6px;
+  font-size: 21px;
   line-height: 1.25;
 }
 
@@ -1045,28 +1116,26 @@ a:focus-visible {
 
 .theme-dark .tweet-name-line strong { color: #f4f4f4; }
 
-.tweet-name-line span {
-  color: #71767b;
-}
-
 .verified-icon {
   color: #1d9bf0;
-  font-size: 17px;
+  flex: 0 0 auto;
+  font-size: 22px;
 }
 
-.tweet-actions-top {
-  margin-left: auto;
+.tweet-handle {
   color: #71767b;
+  font-size: 20px;
+  line-height: 1.25;
 }
 
 .tweet-body {
   min-height: 0;
-  padding: 12px 4px 18px 54px;
+  padding: 18px 0 38px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-weight: 500;
-  line-height: 1.62;
-  letter-spacing: 0.005em;
+  font-weight: 450;
+  line-height: 1.58;
+  letter-spacing: 0.01em;
 }
 
 .direct-card-export {
@@ -1089,41 +1158,22 @@ a:focus-visible {
 .poster-export-surface .poster-card-wrap.wrap-portrait { width: 500px; }
 .poster-export-surface .poster-card-wrap.wrap-landscape { width: 640px; }
 .direct-card-export .tweet-card { box-shadow: none; }
-.direct-card-export .tweet-card.card-portrait { width: 520px; }
+.direct-card-export .tweet-card.card-portrait { width: 600px; }
 .direct-card-export .tweet-card.card-landscape { width: 760px; }
 
-.tweet-metrics {
-  min-height: 30px;
-  padding-left: 54px;
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+.tweet-native-meta {
+  display: flex;
   align-items: center;
-  gap: 7px;
+  flex-wrap: wrap;
+  gap: 5px;
   color: #71767b;
+  font-size: 17px;
+  line-height: 1.4;
 }
 
-.tweet-metrics span {
-  min-width: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.tweet-metrics svg {
-  width: 19px;
-  height: 19px;
-}
-
-.tweet-metrics em {
-  min-width: 0;
-  font-size: 12px;
-  font-style: normal;
-}
-
-.tweet-metrics .liked {
-  color: #f91880;
-}
+.tweet-native-meta i { font-style: normal; }
+.tweet-native-meta strong { color: #0f1419; font-size: 18px; }
+.theme-dark .tweet-native-meta strong { color: #e7e9ea; }
 
 .history-metrics {
   justify-content: flex-start;
@@ -1131,7 +1181,8 @@ a:focus-visible {
 
 .export-bar {
   min-height: 76px;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid #d5ab70;
+  background: #fff4df;
 }
 
 .export-note {
@@ -1246,8 +1297,21 @@ a:focus-visible {
   }
 
   .tweet-card {
-    padding: 14px 13px 11px;
+    padding: 0 18px 22px;
   }
+
+  .tweet-detail-nav { min-height: 62px; grid-template-columns: 46px 1fr 46px; }
+  .tweet-detail-nav strong { font-size: 18px; }
+  .tweet-detail-nav svg { width: 24px; height: 24px; }
+  .tweet-back { font-size: 34px; }
+  .tweet-header { gap: 11px; padding: 14px 0 21px; }
+  .tweet-avatar { width: 58px; height: 58px; }
+  .tweet-name-line { font-size: 18px; }
+  .verified-icon { font-size: 19px; }
+  .tweet-handle { font-size: 17px; }
+  .tweet-body { padding: 14px 0 28px; }
+  .tweet-native-meta { font-size: 14px; }
+  .tweet-native-meta strong { font-size: 15px; }
 
   .background-grid { grid-template-columns: repeat(2, 1fr); }
   .output-picker { grid-template-columns: 1fr; }
@@ -1279,3 +1343,7 @@ a:focus-visible {
     width: 100%;
   }
 }
+
+/* Export dimensions stay stable even when the editor is opened on a phone. */
+.direct-card-export .tweet-card.card-portrait { width: 600px; }
+.direct-card-export .tweet-card.card-landscape { width: 760px; }
