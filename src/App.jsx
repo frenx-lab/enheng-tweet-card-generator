@@ -218,11 +218,56 @@ async function blobToPngDataUrl(blob) {
   }
 }
 
+function drawImageCover(context, image, x, y, width, height) {
+  const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+  const sourceWidth = width / scale;
+  const sourceHeight = height / scale;
+  const sourceX = (image.naturalWidth - sourceWidth) / 2;
+  const sourceY = (image.naturalHeight - sourceHeight) / 2;
+  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+}
+
+async function collectCanvasImages(clone) {
+  const rootBounds = clone.getBoundingClientRect();
+  return Promise.all([...clone.querySelectorAll(".tweet-avatar")].map(async (node) => {
+    const source = node.getAttribute("src") || node.src;
+    const bounds = node.getBoundingClientRect();
+    const image = await loadDecodedImage(source);
+    node.style.visibility = "hidden";
+    return {
+      image,
+      x: bounds.left - rootBounds.left,
+      y: bounds.top - rootBounds.top,
+      width: bounds.width,
+      height: bounds.height,
+    };
+  }));
+}
+
+function drawCollectedImages(context, items, sourceWidth, sourceHeight, canvasWidth, canvasHeight) {
+  const scaleX = canvasWidth / sourceWidth;
+  const scaleY = canvasHeight / sourceHeight;
+  for (const item of items) {
+    const x = item.x * scaleX;
+    const y = item.y * scaleY;
+    const width = item.width * scaleX;
+    const height = item.height * scaleY;
+    context.save();
+    context.beginPath();
+    context.ellipse(x + width / 2, y + height / 2, width / 2, height / 2, 0, 0, Math.PI * 2);
+    context.clip();
+    drawImageCover(context, item.image, x, y, width, height);
+    context.restore();
+  }
+}
+
 async function renderPosterPng(clone) {
   const backgroundNode = clone.querySelector(".poster-background");
   const backgroundSource = backgroundNode?.getAttribute("src") || backgroundNode?.src;
   if (!backgroundSource) throw new Error("poster background is missing");
 
+  const cloneBounds = clone.getBoundingClientRect();
+  const canvasImages = await collectCanvasImages(clone);
   const backgroundImage = await loadDecodedImage(backgroundSource);
   backgroundNode.remove();
   clone.style.backgroundColor = "transparent";
@@ -239,11 +284,24 @@ async function renderPosterPng(clone) {
   const context = canvas.getContext("2d", { alpha: false });
   if (!context) throw new Error("poster canvas is unavailable");
 
-  const scale = Math.max(canvas.width / backgroundImage.naturalWidth, canvas.height / backgroundImage.naturalHeight);
-  const width = backgroundImage.naturalWidth * scale;
-  const height = backgroundImage.naturalHeight * scale;
-  context.drawImage(backgroundImage, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+  drawImageCover(context, backgroundImage, 0, 0, canvas.width, canvas.height);
   context.drawImage(foregroundImage, 0, 0, canvas.width, canvas.height);
+  drawCollectedImages(context, canvasImages, cloneBounds.width, cloneBounds.height, canvas.width, canvas.height);
+  return canvas.toDataURL("image/png");
+}
+
+async function renderCardPng(clone, backgroundColor) {
+  const cloneBounds = clone.getBoundingClientRect();
+  const canvasImages = await collectCanvasImages(clone);
+  const cardDataUrl = await toPng(clone, { cacheBust: false, pixelRatio: 2, backgroundColor });
+  const cardImage = await loadDecodedImage(cardDataUrl);
+  const canvas = document.createElement("canvas");
+  canvas.width = cardImage.naturalWidth;
+  canvas.height = cardImage.naturalHeight;
+  const context = canvas.getContext("2d", { alpha: false });
+  if (!context) throw new Error("card canvas is unavailable");
+  context.drawImage(cardImage, 0, 0, canvas.width, canvas.height);
+  drawCollectedImages(context, canvasImages, cloneBounds.width, cloneBounds.height, canvas.width, canvas.height);
   return canvas.toDataURL("image/png");
 }
 
@@ -553,7 +611,7 @@ export function App() {
       cleanup = stable.cleanup;
       const dataUrl = stable.clone.classList.contains("douyin-poster")
         ? await renderPosterPng(stable.clone)
-        : await toPng(stable.clone, { cacheBust: false, pixelRatio: 2, backgroundColor });
+        : await renderCardPng(stable.clone, backgroundColor);
       await deliverImage(dataUrl, filename);
       setExported(true);
       window.setTimeout(() => setExported(false), 1800);
