@@ -1275,8 +1275,12 @@ a:focus-visible {
   .douyin-poster { width: min(720px, calc(100vw - 44px)); height: auto; aspect-ratio: 3 / 4; }
   .poster-card-wrap.wrap-portrait { width: calc(100% - 92px); }
   .poster-card-wrap.wrap-landscape { width: calc(100% - 46px); }
-  .tweet-card.card-portrait:not(.poster-tweet-card),
-  .tweet-card.card-landscape:not(.poster-tweet-card) { width: min(100%, calc(100vw - 44px)); }
+  .preview-stage.card .tweet-card.card-portrait:not(.poster-tweet-card) {
+    width: min(600px, calc(100vw - 92px));
+  }
+  .preview-stage.card .tweet-card.card-landscape:not(.poster-tweet-card) {
+    width: min(760px, calc(100vw - 28px));
+  }
 }
 
 @media (max-width: 620px) {
