@@ -190,22 +190,37 @@ function buildLocalPublishCopies(text, style) {
   return templates[style] || templates.concise;
 }
 
-function blobToDataUrl(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
+async function blobToPngDataUrl(blob) {
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const image = new Image();
+    image.decoding = "sync";
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = () => reject(new Error("image decode failed"));
+      image.src = objectUrl;
+    });
+    const maxDimension = 2400;
+    const ratio = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * ratio));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * ratio));
+    const context = canvas.getContext("2d", { alpha: true });
+    if (!context) throw new Error("canvas is unavailable");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/png");
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }
 
-async function fetchImageAsDataUrl(source) {
+async function fetchImageAsPngDataUrl(source) {
   let lastError;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       const response = await fetch(source, { cache: attempt === 0 ? "force-cache" : "reload" });
       if (!response.ok) throw new Error(`image ${response.status}`);
-      return await blobToDataUrl(await response.blob());
+      return await blobToPngDataUrl(await response.blob());
     } catch (error) {
       lastError = error;
     }
@@ -226,9 +241,15 @@ async function createStableExportClone(node) {
     const images = [...clone.querySelectorAll("img")];
     await Promise.all(images.map(async (image) => {
       const source = image.getAttribute("src") || image.src;
-      if (!source || source.startsWith("data:")) return;
-      image.src = await fetchImageAsDataUrl(new URL(source, window.location.href).href);
-      if (image.decode) await image.decode();
+      if (!source) return;
+      const pngDataUrl = await fetchImageAsPngDataUrl(new URL(source, window.location.href).href);
+      image.removeAttribute("crossorigin");
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error("embedded image decode failed"));
+        image.src = pngDataUrl;
+        if (image.complete && image.naturalWidth) resolve();
+      });
     }));
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     return { clone, cleanup: () => host.remove() };
