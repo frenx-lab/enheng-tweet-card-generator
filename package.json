@@ -9,6 +9,7 @@
     "dev": "vite",
     "assets:build": "node scripts/build-generated-backgrounds.mjs",
     "content:import": "node scripts/import-enheng-evidence.mjs",
+    "tweets:sync": "node scripts/sync-opentwitter.mjs",
     "build": "npm run assets:build && vite build && node scripts/prepare-sites-build.mjs",
     "preview": "vite preview",
     "test:sites": "node --test tests/sites-worker.test.mjs"

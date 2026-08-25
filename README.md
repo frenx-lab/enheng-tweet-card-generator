@@ -8,6 +8,12 @@
 
 需要重新导入新版证据库时，下载 `references/evidence.jsonl` 后运行 `npm run content:import -- /path/to/evidence.jsonl`。导入器只保留独立帖子，转换日期与互动数据，按推文 ID、来源链接和正文相似度去重，并保留原推链接及摘录标记。
 
+## 推文自动更新
+
+`.github/workflows/sync-tweets.yml` 每天北京时间 08:20 获取 `@EnHeng456` 最新推文。同步状态保存在 `src/tweet-sync-state.json`，每次只处理上次成功同步之后的内容；回复、转推和重复正文会自动排除。发现新增内容后，GitHub Actions 会更新 `src/tweets.json` 并提交到 `main`，随后触发 Pages 自动部署；没有新增内容时不会产生提交。
+
+在仓库的 `Settings → Secrets and variables → Actions` 中添加名为 `OPENNEWS_TOKEN` 的 Repository secret。密钥只允许保存在 GitHub Secret 中，不得写入源码。也可以在 Actions 页面手动运行 `Sync latest EnHeng tweets`，立即检查新推文。
+
 ## GitHub Pages 与 DeepSeek
 
 仓库已包含 GitHub Pages 自动部署流程。Pages 只负责公开前端，不能安全保存 DeepSeek API Key。AI 文案通过独立的服务端接口调用：前端只配置公开的 `VITE_AI_API_BASE_URL`，服务端把 `DEEPSEEK_API_KEY` 保存为 Secret，并通过 `ALLOWED_ORIGIN` 限制允许调用的 Pages 域名。不要把真实密钥写入源码、`.env.example` 或任何以 `VITE_` 开头的变量。

@@ -1,0 +1,44 @@
+name: Sync latest EnHeng tweets
+
+on:
+  schedule:
+    # 08:20 Asia/Shanghai every day.
+    - cron: "20 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-enheng-tweets
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Fetch tweets newer than the last successful sync
+        run: npm run tweets:sync
+        env:
+          OPENNEWS_TOKEN: ${{ secrets.OPENNEWS_TOKEN }}
+      - name: Verify production build
+        run: npm run build
+      - name: Commit new tweets
+        run: |
+          if git diff --quiet -- src/tweets.json src/tweet-sync-state.json; then
+            echo "No new independent tweets."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/tweets.json src/tweet-sync-state.json
+          git commit -m "chore: sync latest EnHeng tweets"
+          git push
