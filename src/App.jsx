@@ -190,16 +190,20 @@ function buildLocalPublishCopies(text, style) {
   return templates[style] || templates.concise;
 }
 
+function loadDecodedImage(source) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.decoding = "sync";
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("image decode failed"));
+    image.src = source;
+  });
+}
+
 async function blobToPngDataUrl(blob) {
   const objectUrl = URL.createObjectURL(blob);
   try {
-    const image = new Image();
-    image.decoding = "sync";
-    await new Promise((resolve, reject) => {
-      image.onload = resolve;
-      image.onerror = () => reject(new Error("image decode failed"));
-      image.src = objectUrl;
-    });
+    const image = await loadDecodedImage(objectUrl);
     const maxDimension = 2400;
     const ratio = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
     const canvas = document.createElement("canvas");
@@ -212,6 +216,35 @@ async function blobToPngDataUrl(blob) {
   } finally {
     URL.revokeObjectURL(objectUrl);
   }
+}
+
+async function renderPosterPng(clone) {
+  const backgroundNode = clone.querySelector(".poster-background");
+  const backgroundSource = backgroundNode?.getAttribute("src") || backgroundNode?.src;
+  if (!backgroundSource) throw new Error("poster background is missing");
+
+  const backgroundImage = await loadDecodedImage(backgroundSource);
+  backgroundNode.remove();
+  clone.style.backgroundColor = "transparent";
+
+  const foregroundDataUrl = await toPng(clone, {
+    cacheBust: false,
+    pixelRatio: 2,
+    backgroundColor: "transparent",
+  });
+  const foregroundImage = await loadDecodedImage(foregroundDataUrl);
+  const canvas = document.createElement("canvas");
+  canvas.width = foregroundImage.naturalWidth;
+  canvas.height = foregroundImage.naturalHeight;
+  const context = canvas.getContext("2d", { alpha: false });
+  if (!context) throw new Error("poster canvas is unavailable");
+
+  const scale = Math.max(canvas.width / backgroundImage.naturalWidth, canvas.height / backgroundImage.naturalHeight);
+  const width = backgroundImage.naturalWidth * scale;
+  const height = backgroundImage.naturalHeight * scale;
+  context.drawImage(backgroundImage, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+  context.drawImage(foregroundImage, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/png");
 }
 
 async function fetchImageAsPngDataUrl(source) {
@@ -518,7 +551,9 @@ export function App() {
     try {
       const stable = await createStableExportClone(node);
       cleanup = stable.cleanup;
-      const dataUrl = await toPng(stable.clone, { cacheBust: false, pixelRatio: 2, backgroundColor });
+      const dataUrl = stable.clone.classList.contains("douyin-poster")
+        ? await renderPosterPng(stable.clone)
+        : await toPng(stable.clone, { cacheBust: false, pixelRatio: 2, backgroundColor });
       await deliverImage(dataUrl, filename);
       setExported(true);
       window.setTimeout(() => setExported(false), 1800);
